@@ -3,7 +3,7 @@ services:
     name: trading-backtest-api
     runtime: python3
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    startCommand: python app.py
     plan: free
     envVars:
       - key: PYTHON_VERSION
