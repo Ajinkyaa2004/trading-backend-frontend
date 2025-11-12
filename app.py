@@ -81,10 +81,10 @@ async def root():
     return {
         "message": "Trading Backtesting API is running!",
         "status": "healthy", 
-        "version": "1.0.5",
+        "version": "1.0.6",
         "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
         "uploaded_files_count": len(uploaded_files),
-        "note": "Fixed metrics display and added chart data for proper visualization"
+        "note": "Fixed performance heatmap with multi-month trade data and improved error handling"
     }
 
 @app.get("/api/files/")
@@ -228,33 +228,24 @@ async def get_backtest_detail(backtest_id: str):
             "final_balance": 12500.0
         },
         "trades": [
-            {
-                "entry_time": "2024-01-01 09:30:00",
-                "exit_time": "2024-01-01 09:45:00", 
-                "type": "LONG",
-                "entry_price": 4500.0,
-                "exit_price": 4512.0,
-                "pnl": 150.0,
-                "outcome": "WIN"
-            },
-            {
-                "entry_time": "2024-01-01 10:00:00",
-                "exit_time": "2024-01-01 10:15:00", 
-                "type": "SHORT",
-                "entry_price": 4520.0,
-                "exit_price": 4515.0,
-                "pnl": 62.5,
-                "outcome": "WIN"
-            },
-            {
-                "entry_time": "2024-01-01 11:30:00",
-                "exit_time": "2024-01-01 11:45:00", 
-                "type": "LONG",
-                "entry_price": 4530.0,
-                "exit_price": 4525.0,
-                "pnl": -62.5,
-                "outcome": "LOSS"
-            }
+            # January 2024 trades
+            {"entry_time": "2024-01-15 09:30:00", "exit_time": "2024-01-15 10:15:00", "type": "LONG", "entry_price": 4500.0, "exit_price": 4512.0, "pnl": 150.0, "outcome": "WIN"},
+            {"entry_time": "2024-01-22 11:00:00", "exit_time": "2024-01-22 11:30:00", "type": "SHORT", "entry_price": 4520.0, "exit_price": 4515.0, "pnl": 62.5, "outcome": "WIN"},
+            {"entry_time": "2024-01-28 14:30:00", "exit_time": "2024-01-28 15:00:00", "type": "LONG", "entry_price": 4530.0, "exit_price": 4525.0, "pnl": -62.5, "outcome": "LOSS"},
+            
+            # February 2024 trades
+            {"entry_time": "2024-02-05 10:30:00", "exit_time": "2024-02-05 11:15:00", "type": "LONG", "entry_price": 4550.0, "exit_price": 4565.0, "pnl": 187.5, "outcome": "WIN"},
+            {"entry_time": "2024-02-12 13:00:00", "exit_time": "2024-02-12 13:45:00", "type": "SHORT", "entry_price": 4580.0, "exit_price": 4570.0, "pnl": 125.0, "outcome": "WIN"},
+            {"entry_time": "2024-02-20 09:30:00", "exit_time": "2024-02-20 10:00:00", "type": "LONG", "entry_price": 4600.0, "exit_price": 4590.0, "pnl": -125.0, "outcome": "LOSS"},
+            
+            # March 2024 trades
+            {"entry_time": "2024-03-08 11:30:00", "exit_time": "2024-03-08 12:15:00", "type": "LONG", "entry_price": 4620.0, "exit_price": 4635.0, "pnl": 187.5, "outcome": "WIN"},
+            {"entry_time": "2024-03-15 14:00:00", "exit_time": "2024-03-15 14:30:00", "type": "SHORT", "entry_price": 4650.0, "exit_price": 4640.0, "pnl": 125.0, "outcome": "WIN"},
+            {"entry_time": "2024-03-25 10:30:00", "exit_time": "2024-03-25 11:00:00", "type": "LONG", "entry_price": 4670.0, "exit_price": 4660.0, "pnl": -125.0, "outcome": "LOSS"},
+            
+            # April 2024 trades
+            {"entry_time": "2024-04-03 09:30:00", "exit_time": "2024-04-03 10:15:00", "type": "LONG", "entry_price": 4680.0, "exit_price": 4695.0, "pnl": 187.5, "outcome": "WIN"},
+            {"entry_time": "2024-04-18 13:30:00", "exit_time": "2024-04-18 14:00:00", "type": "SHORT", "entry_price": 4710.0, "exit_price": 4700.0, "pnl": 125.0, "outcome": "WIN"}
         ],
         "chart_data": {
             "equity_curve": {

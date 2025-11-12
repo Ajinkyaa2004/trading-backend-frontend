@@ -169,6 +169,7 @@ function toggleHeatmapView() {
 }
 
 function renderHeatmap(trades) {
+  console.log('Rendering heatmap with trades:', trades);
   if (!trades || trades.length === 0) {
     el('heatmap-container').innerHTML = '<p style="text-align:center; color:var(--muted)">No data available for heatmap</p>';
     return;
@@ -179,10 +180,18 @@ function renderHeatmap(trades) {
   // Group trades by month/year
   const grouped = {};
   trades.forEach(trade => {
-    const exitTime = trade.exit_time || trade['Exit Time'];
-    if (!exitTime) return;
+    const exitTime = trade.exit_time;
+    if (!exitTime) {
+      console.warn('Trade missing exit_time:', trade);
+      return;
+    }
     
     const date = new Date(exitTime);
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date:', exitTime, trade);
+      return;
+    }
+    
     const key = heatmapView === 'monthly' 
       ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       : `${date.getFullYear()}`;
