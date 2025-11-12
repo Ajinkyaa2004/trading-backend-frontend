@@ -81,10 +81,10 @@ async def root():
     return {
         "message": "Trading Backtesting API is running!",
         "status": "healthy", 
-        "version": "1.0.4",
+        "version": "1.0.5",
         "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
         "uploaded_files_count": len(uploaded_files),
-        "note": "Fixed win_rate format and added missing metrics (avg_pnl, best_trade, worst_trade)"
+        "note": "Fixed metrics display and added chart data for proper visualization"
     }
 
 @app.get("/api/files/")
@@ -218,23 +218,54 @@ async def get_backtest_detail(backtest_id: str):
             "total_trades": 25,
             "winning_trades": 15,
             "losing_trades": 10,
-            "win_rate": 60.0,
+            "win_rate": 0.60,  # Fixed: decimal format for consistency
             "total_pnl": 2500.0,
+            "avg_pnl": 100.0,  # Added missing metric
             "max_drawdown": -500.0,
             "sharpe_ratio": 1.2,
+            "best_trade": 350.0,  # Added missing metric
+            "worst_trade": -200.0,  # Added missing metric
             "final_balance": 12500.0
         },
         "trades": [
             {
-                "entry_time": "2024-01-01 10:00:00",
-                "exit_time": "2024-01-01 10:30:00", 
+                "entry_time": "2024-01-01 09:30:00",
+                "exit_time": "2024-01-01 09:45:00", 
                 "type": "LONG",
                 "entry_price": 4500.0,
                 "exit_price": 4512.0,
                 "pnl": 150.0,
                 "outcome": "WIN"
+            },
+            {
+                "entry_time": "2024-01-01 10:00:00",
+                "exit_time": "2024-01-01 10:15:00", 
+                "type": "SHORT",
+                "entry_price": 4520.0,
+                "exit_price": 4515.0,
+                "pnl": 62.5,
+                "outcome": "WIN"
+            },
+            {
+                "entry_time": "2024-01-01 11:30:00",
+                "exit_time": "2024-01-01 11:45:00", 
+                "type": "LONG",
+                "entry_price": 4530.0,
+                "exit_price": 4525.0,
+                "pnl": -62.5,
+                "outcome": "LOSS"
             }
         ],
+        "chart_data": {
+            "equity_curve": {
+                "dates": ["2024-01-01 09:30", "2024-01-01 10:00", "2024-01-01 11:30", "2024-01-01 12:00"],
+                "balance": [10000, 10150, 10212.5, 10150]
+            },
+            "monthly_returns": {
+                "months": ["Jan 2024", "Feb 2024", "Mar 2024"],
+                "pnl": [2500.0, 1200.0, -300.0]
+            }
+        },
         "status": "completed"
     }
     return mock_detail
