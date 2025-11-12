@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: trading-backtest-api
+    runtime: python3
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: MONGODB_URI
+        value: "mongodb://localhost:27017/"
+    healthCheckPath: /
