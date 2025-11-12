@@ -81,10 +81,10 @@ async def root():
     return {
         "message": "Trading Backtesting API is running!",
         "status": "healthy", 
-        "version": "1.0.3",
+        "version": "1.0.4",
         "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
         "uploaded_files_count": len(uploaded_files),
-        "note": "Fixed /api/files/ endpoint and /backtests form data handling"
+        "note": "Fixed win_rate format and added missing metrics (avg_pnl, best_trade, worst_trade)"
     }
 
 @app.get("/api/files/")
@@ -178,10 +178,13 @@ async def run_backtest(file: UploadFile = File(...), params_json: str = Form("")
             "total_trades": 25,
             "winning_trades": 15,
             "losing_trades": 10,
-            "win_rate": 60.0,
+            "win_rate": 0.60,  # Fixed: Should be 0.60 (60%) not 60.0
             "total_pnl": 2500.0,
+            "avg_pnl": 100.0,  # Added missing metric
             "max_drawdown": -500.0,
             "sharpe_ratio": 1.2,
+            "best_trade": 350.0,  # Added missing metric
+            "worst_trade": -200.0,  # Added missing metric
             "final_balance": starting_balance + 2500.0
         },
         "trades": [

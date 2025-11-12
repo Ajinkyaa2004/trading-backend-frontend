@@ -169,7 +169,12 @@ function renderMetrics(m){
     if (value === undefined || value === null || isNaN(value)) return 'N/A';
     const num = parseFloat(value);
     if (isNaN(num)) return 'N/A';
-    return isPercent ? (num * 100).toFixed(decimals) + '%' : num.toFixed(decimals);
+    // For percentages, check if value is already in percentage form (>1) or decimal form (<1)
+    if (isPercent) {
+      const percentValue = num > 1 ? num : num * 100;
+      return percentValue.toFixed(decimals) + '%';
+    }
+    return num.toFixed(decimals);
   };
 
   const asTiles = [
