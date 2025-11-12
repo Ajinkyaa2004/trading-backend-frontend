@@ -61,7 +61,7 @@ async def root():
         "version": "1.0.0"
     }
 
-@app.get("/files")
+@app.get("/api/files/")
 async def list_files() -> List[FileInfo]:
     """List uploaded files"""
     return uploaded_files
@@ -99,19 +99,25 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
-@app.post("/backtest")
-async def run_backtest(filename: str, params: BacktestParams):
+@app.post("/backtests")
+async def run_backtest(file: UploadFile = File(...), params_json: str = ""):
     """Run backtesting on uploaded file"""
     
-    # Check if file exists
-    file_exists = any(f.filename == filename for f in uploaded_files)
-    if not file_exists:
-        raise HTTPException(status_code=404, detail="File not found. Please upload a CSV file first.")
+    # Basic validation
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+    
+    # Parse parameters (optional, use defaults if not provided)
+    try:
+        params = json.loads(params_json) if params_json else {}
+    except:
+        params = {}
     
     # For now, return mock results (replace with actual backtesting later)
+    starting_balance = params.get("starting_balance", 10000)
     mock_results = {
-        "filename": filename,
-        "parameters": params.dict(),
+        "filename": file.filename,
+        "parameters": params,
         "metrics": {
             "total_trades": 25,
             "winning_trades": 15,
@@ -120,7 +126,7 @@ async def run_backtest(filename: str, params: BacktestParams):
             "total_pnl": 2500.0,
             "max_drawdown": -500.0,
             "sharpe_ratio": 1.2,
-            "final_balance": params.starting_balance + 2500.0
+            "final_balance": starting_balance + 2500.0
         },
         "trades": [
             {
@@ -137,7 +143,65 @@ async def run_backtest(filename: str, params: BacktestParams):
         "message": "Backtesting completed successfully! (Demo results - full functionality coming soon)"
     }
     
-    return mock_results
+    return {"id": "demo-123"}
+
+@app.get("/backtests/{backtest_id}")
+async def get_backtest_detail(backtest_id: str):
+    """Get detailed backtest results"""
+    mock_detail = {
+        "id": backtest_id,
+        "filename": "demo_data.csv",
+        "parameters": {
+            "starting_balance": 10000,
+            "risk_percentage": 2.0,
+        },
+        "metrics": {
+            "total_trades": 25,
+            "winning_trades": 15,
+            "losing_trades": 10,
+            "win_rate": 60.0,
+            "total_pnl": 2500.0,
+            "max_drawdown": -500.0,
+            "sharpe_ratio": 1.2,
+            "final_balance": 12500.0
+        },
+        "trades": [
+            {
+                "entry_time": "2024-01-01 10:00:00",
+                "exit_time": "2024-01-01 10:30:00", 
+                "type": "LONG",
+                "entry_price": 4500.0,
+                "exit_price": 4512.0,
+                "pnl": 150.0,
+                "outcome": "WIN"
+            }
+        ],
+        "status": "completed"
+    }
+    return mock_detail
+
+@app.get("/api/historical-data/")
+async def get_historical_data(limit: int = 100):
+    """Get historical backtest data"""
+    mock_historical = [
+        {
+            "id": "demo-123",
+            "filename": "demo_data.csv",
+            "created_at": "2024-01-01T10:00:00Z",
+            "status": "completed",
+            "metrics": {
+                "total_pnl": 2500.0,
+                "win_rate": 60.0,
+                "total_trades": 25
+            }
+        }
+    ]
+    return mock_historical
+
+@app.get("/api/historical-data/{data_id}")
+async def get_historical_data_detail(data_id: str):
+    """Get specific historical backtest detail"""
+    return await get_backtest_detail(data_id)
 
 @app.get("/health")
 async def health_check():
