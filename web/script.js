@@ -163,16 +163,26 @@ function collectParams(){
 function renderMetrics(m){
   const container = el('metrics');
   container.innerHTML = '';
+  
+  // Helper function to safely format numbers
+  const formatNumber = (value, isPercent = false, decimals = 2) => {
+    if (value === undefined || value === null || isNaN(value)) return 'N/A';
+    const num = parseFloat(value);
+    if (isNaN(num)) return 'N/A';
+    return isPercent ? (num * 100).toFixed(decimals) + '%' : num.toFixed(decimals);
+  };
+
   const asTiles = [
-    ['Total Trades', m.total_trades],
-    ['Win Rate', (m.win_rate*100).toFixed(2)+'%'],
-    ['Total P&L', m.total_pnl.toFixed(2)],
-    ['Average P&L', m.avg_pnl.toFixed(2)],
-    ['Sharpe Ratio', m.sharpe_ratio.toFixed(2)],
-    ['Max Drawdown', m.max_drawdown.toFixed(2)],
-    ['Best Trade', m.best_trade.toFixed(2)],
-    ['Worst Trade', m.worst_trade.toFixed(2)],
+    ['Total Trades', m.total_trades || 0],
+    ['Win Rate', formatNumber(m.win_rate, true)],
+    ['Total P&L', formatNumber(m.total_pnl)],
+    ['Average P&L', formatNumber(m.avg_pnl)],
+    ['Sharpe Ratio', formatNumber(m.sharpe_ratio)],
+    ['Max Drawdown', formatNumber(m.max_drawdown)],
+    ['Best Trade', formatNumber(m.best_trade)],
+    ['Worst Trade', formatNumber(m.worst_trade)],
   ];
+  
   asTiles.forEach(([k,v]) => {
     const div = document.createElement('div'); div.className='tile';
     div.innerHTML = `<div class="muted">${k}</div><div style="font-size:1.2em;">${v}</div>`;
