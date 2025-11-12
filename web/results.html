@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Backtest Results</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{ background: var(--bg, #0b0f14); }
+    .results-page { max-width: 1200px; margin: 24px auto; padding: 12px; }
+    .results-header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .results-grid { display:grid; grid-template-columns: 1fr; gap:16px; }
+    .result-card { background: var(--panel, #121922); color: var(--text, #e6eef7); border:1px solid rgba(255,255,255,.08); border-radius: 12px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+    .img-wrap { display:flex; justify-content:center; }
+    .img-wrap img { max-width:100%; height:auto; border-radius: 8px; }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .muted { opacity: .75; }
+    @media (min-width: 900px) {
+      .results-grid { grid-template-columns: 1fr 1fr; }
+      .results-grid .result-card.wide { grid-column: 1 / -1; }
+    }
+    .table-wrap { overflow:auto; max-height: 60vh; }
+
+  </style>
+</head>
+<body>
+  <div class="results-page">
+    <div class="results-header">
+      <div>
+        <h1>Backtest Results</h1>
+        <div id="meta" class="muted"></div>
+      </div>
+      <div class="btn-row">
+        <button id="download-eq">Download Equity Chart</button>
+        <button id="download-mon">Download Monthly Chart</button>
+        <button id="print-page">Print</button>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card">
+        <h3>Equity Curve</h3>
+        <div class="img-wrap"><img id="eq-img" alt="Equity chart"/></div>
+      </div>
+      <div class="result-card">
+        <h3>Monthly Returns</h3>
+        <div class="img-wrap"><img id="mon-img" alt="Monthly chart"/></div>
+      </div>
+
+      <div class="result-card wide">
+        <h3>Key Metrics</h3>
+        <div id="metrics-slot"></div>
+      </div>
+
+      <div class="result-card wide">
+        <div class="table-header">
+          <h3>Trade History</h3>
+        </div>
+        <div class="table-wrap" id="trades-slot"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="results.js"></script>
+</body>
+</html>

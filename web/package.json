@@ -1,0 +1,16 @@
+{
+  "name": "trading-strategy-backtesting-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Trading Strategy Backtesting Platform",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "build": "echo 'Static build - no build process needed'",
+    "start": "echo 'Static files served directly'"
+  },
+  "keywords": ["trading", "backtesting", "finance", "strategy"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backtesting Platform</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Trading Strategy Backtesting</h1>
+    <div class="header-actions">
+      <button id="view-history-btn" class="secondary-btn">📊 Previous Strategies</button>
+    </div>
+  </header>
+  <main>
+    <section id="config">
+      <h2>Configuration</h2>
+      <div class="card">
+        <form id="upload-form">
+          <div class="field">
+            <label>Upload CSV/Excel (OHLC)</label>
+            <input type="file" id="file" accept=".csv,.xlsx,.xls" required />
+            <small>Supports CSV and Excel files. Auto-detects date and OHLC columns.</small>
+          </div>
+
+          <div id="file-info" class="muted"></div>
+          <div id="preview" class="table-wrap hidden">
+            <h4>Preview (first 10 rows)</h4>
+            <table id="preview-table"></table>
+          </div>
+
+          <h3>Parameters</h3>
+          <div class="grid">
+            <label>Starting Balance <input type="number" id="starting_balance" value="100000" min="1000" step="1000"></label>
+            <label>Take Profit (Ticks) <input type="number" id="tp_ticks" value="20" min="10" max="50" step="1"></label>
+            <label>Stop Loss (Ticks) <input type="number" id="sl_ticks" value="20" min="10" max="50" step="1"></label>
+            <label>Risk Percentage (%) <input type="number" id="risk_percentage" value="1" min="0.5" max="5" step="0.1"></label>
+            <label>Trailing Stop <input type="checkbox" id="trailing_stop"></label>
+            <label>Trailing Stop Ticks <input type="number" id="trailing_stop_ticks" value="5" min="3" max="20" step="1"></label>
+            <label>Tick Size <input type="number" id="tick_size" value="0.25" step="0.01"></label>
+            <label>Tick Value <input type="number" id="tick_value" value="5" step="0.01"></label>
+            <label>Commission per Trade <input type="number" id="commission_per_trade" value="5" step="0.01"></label>
+            <label>Slippage (Ticks) <input type="number" id="slippage_ticks" value="1" step="1"></label>
+            <label>Contract Margin <input type="number" id="contract_margin" value="13000" step="100"></label>
+          </div>
+
+          <div class="actions">
+            <button type="submit" id="run" disabled>Run Backtest</button>
+            <span id="status" class="muted"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="file-list-section">
+      <h2>Uploaded Files</h2>
+      <div class="card">
+        <div id="file-list">
+          <p>Loading files...</p>
+        </div>
+      </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="history-section" class="hidden">
+      <div class="section-header">
+        <h2>Previous Strategies</h2>
+        <button id="close-history-btn" class="close-btn">✕ Close</button>
+      </div>
+      <div class="card">
+        <div id="history-filters" class="filters">
+          <input type="text" id="search-strategy" placeholder="Search by filename or strategy..." />
+          <select id="sort-history">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="best">Best Performance</option>
+            <option value="worst">Worst Performance</option>
+          </select>
+          <button id="refresh-history-btn">🔄 Refresh</button>
+        </div>
+        <div id="history-list">
+          <p>Loading previous strategies...</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="hidden">
+      <h2>Results</h2>
+      
+      <!-- Progress Indicator -->
+      <div id="progress-container" class="card hidden">
+        <h3>⏳ Backtest Progress</h3>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+        <div class="progress-info">
+          <span id="progress-text">Initializing...</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div id="progress-details" class="progress-details"></div>
+      </div>
+      
+      <div id="downloads" class="card">
+        <button id="download-trades" disabled>Download trades.csv</button>
+        <button id="download-metrics" disabled>Download metrics.csv</button>
+      </div>
+
+      <div id="metrics" class="metrics-grid"></div>
+
+      <div class="charts-grid">
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3>📈 Equity Curve</h3>
+            <div class="chart-controls">
+              <button class="chart-btn" onclick="resetChart('equityChart')">Reset Zoom</button>
+            </div>
+          </div>
+          <canvas id="equityChart"></canvas>
+        </div>
+        
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3>📊 Monthly Returns</h3>
+            <div class="chart-controls">
+              <button class="chart-btn" onclick="resetChart('monthlyChart')">Reset Zoom</button>
+            </div>
+          </div>
+          <canvas id="monthlyChart"></canvas>
+        </div>
+        
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3>📉 Drawdown</h3>
+            <div class="chart-controls">
+              <button class="chart-btn" onclick="resetChart('drawdownChart')">Reset Zoom</button>
+            </div>
+          </div>
+          <canvas id="drawdownChart"></canvas>
+        </div>
+        
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3>🎯 Win/Loss Distribution</h3>
+            <div class="chart-controls">
+              <button class="chart-btn" onclick="resetChart('distributionChart')">Reset Zoom</button>
+            </div>
+          </div>
+          <canvas id="distributionChart"></canvas>
+        </div>
+        
+        <div class="card chart-card full-width">
+          <div class="chart-header">
+            <h3>💰 Cumulative P&L</h3>
+            <div class="chart-controls">
+              <button class="chart-btn" onclick="resetChart('cumulativePnlChart')">Reset Zoom</button>
+            </div>
+          </div>
+          <canvas id="cumulativePnlChart"></canvas>
+        </div>
+        
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3>🔥 Performance Heatmap</h3>
+            <div class="chart-controls">
+              <button class="chart-btn" onclick="toggleHeatmapView()">Toggle Monthly/Yearly</button>
+            </div>
+          </div>
+          <div id="heatmap-container"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-header">
+          <h3>Trade History</h3>
+          <div>
+            <button id="load-trades">Load Table</button>
+            <select id="pnl-filter">
+              <option value="all">All</option>
+              <option value="wins">Wins</option>
+              <option value="losses">Losses</option>
+            </select>
+            <select id="side-filter">
+              <option value="both">Both</option>
+              <option value="long">Long</option>
+              <option value="short">Short</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="trades-table"></table>
+          <div class="pagination">
+            <button id="prev-page">Prev</button>
+            <span id="page-info"></span>
+            <button id="next-page">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+  <script src="enhancements.js"></script>
+  <script src="advanced-features.js"></script>
+</body>
+</html>

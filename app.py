@@ -4,8 +4,11 @@ Minimal Trading Backtesting API for deployment testing
 """
 import os
 import json
-from typing import List, Dict, Any
-from fastapi import FastAPI, File, UploadFile, HTTPException
+import io
+import csv
+from datetime import datetime
+from typing import List, Dict, Any, Optional
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -46,28 +49,52 @@ class BacktestParams(BaseModel):
 
 class FileInfo(BaseModel):
     filename: str
-    size: int
-    status: str
+    symbol: str = "DEFAULT"
+    uploaded_at: datetime
+    row_count: int
+    size_mb: float
+    status: str = "uploaded"
 
-# In-memory storage for demo (replace with database later)
+# In-memory storage for demo (will persist during server runtime)
 uploaded_files: List[FileInfo] = []
+
+# Add sample data for testing (can be removed later)
+def initialize_sample_data():
+    """Initialize with sample data for testing"""
+    if not uploaded_files:  # Only add if list is empty
+        sample_file = FileInfo(
+            filename="sample_data.csv",
+            symbol="NIFTY",
+            uploaded_at=datetime(2024, 11, 13, 2, 0, 0),
+            row_count=1000,
+            size_mb=0.05,
+            status="uploaded"
+        )
+        uploaded_files.append(sample_file)
+
+# Initialize sample data on startup
+initialize_sample_data()
 
 @app.get("/")
 async def root():
     """Health check endpoint"""
     return {
         "message": "Trading Backtesting API is running!",
-        "status": "healthy",
-        "version": "1.0.0"
+        "status": "healthy", 
+        "version": "1.0.2",
+        "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
+        "uploaded_files_count": len(uploaded_files),
+        "note": "Fixed /api/files/ endpoint to return proper file data structure"
     }
 
 @app.get("/api/files/")
-async def list_files() -> List[FileInfo]:
+async def list_files() -> List[Dict[str, Any]]:
     """List uploaded files"""
-    return uploaded_files
+    # Convert FileInfo objects to dictionaries for JSON serialization
+    return [file.dict() for file in uploaded_files]
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), symbol: str = Form("DEFAULT")):
     """Upload a CSV file for backtesting"""
     
     # Basic validation
@@ -79,13 +106,29 @@ async def upload_file(file: UploadFile = File(...)):
     
     try:
         content = await file.read()
+        
+        # Parse CSV to get row count
+        csv_content = io.StringIO(content.decode('utf-8'))
+        csv_reader = csv.reader(csv_content)
+        
+        # Skip header and count rows
+        next(csv_reader, None)  # Skip header
+        row_count = sum(1 for _ in csv_reader)
+        
+        # Save file
         with open(file_path, "wb") as f:
             f.write(content)
         
-        # Add to file list
+        # Calculate file size in MB
+        size_mb = len(content) / (1024 * 1024)
+        
+        # Add to file list with proper structure
         file_info = FileInfo(
             filename=file.filename,
-            size=len(content),
+            symbol=symbol,
+            uploaded_at=datetime.utcnow(),
+            row_count=row_count,
+            size_mb=round(size_mb, 2),
             status="uploaded"
         )
         uploaded_files.append(file_info)
@@ -93,11 +136,24 @@ async def upload_file(file: UploadFile = File(...)):
         return {
             "message": f"File {file.filename} uploaded successfully",
             "filename": file.filename,
-            "size": len(content)
+            "size_mb": size_mb,
+            "row_count": row_count,
+            "symbol": symbol
         }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
+
+@app.post("/api/files/upload/")
+async def upload_file_api(
+    file: UploadFile = File(...),
+    symbol: str = Form("DEFAULT"),
+    validate: bool = Form(True)
+):
+    """
+    API endpoint for file upload that matches the expected interface
+    """
+    return await upload_file(file, symbol)
 
 @app.post("/backtests")
 async def run_backtest(file: UploadFile = File(...), params_json: str = ""):
@@ -203,16 +259,36 @@ async def get_historical_data_detail(data_id: str):
     """Get specific historical backtest detail"""
     return await get_backtest_detail(data_id)
 
+@app.get("/debug/routes")
+async def debug_routes():
+    """Debug endpoint to show all available routes"""
+    return {
+        "available_routes": [
+            "GET /",
+            "GET /api/files/",
+            "POST /upload", 
+            "POST /backtests",
+            "GET /backtests/{id}",
+            "GET /api/historical-data/",
+            "GET /api/historical-data/{id}",
+            "GET /health",
+            "GET /debug/routes"
+        ],
+        "deployment_time": "2024-11-13T02:33:00Z",
+        "version": "1.0.1"
+    }
+
 @app.get("/health")
 async def health_check():
     """Extended health check"""
     return {
         "status": "healthy",
-        "service": "Trading Backtesting API",
-        "version": "1.0.0",
-        "endpoints": ["/", "/files", "/upload", "/backtest", "/health"],
+        "service": "Trading Backtesting API", 
+        "version": "1.0.2",
+        "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
         "data_directory": DATA_DIR,
-        "uploaded_files_count": len(uploaded_files)
+        "uploaded_files_count": len(uploaded_files),
+        "fix_applied": "Updated /api/files/ to return proper file structure with all required fields"
     }
 
 if __name__ == "__main__":
