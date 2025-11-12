@@ -81,10 +81,10 @@ async def root():
     return {
         "message": "Trading Backtesting API is running!",
         "status": "healthy", 
-        "version": "1.0.2",
+        "version": "1.0.3",
         "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
         "uploaded_files_count": len(uploaded_files),
-        "note": "Fixed /api/files/ endpoint to return proper file data structure"
+        "note": "Fixed /api/files/ endpoint and /backtests form data handling"
     }
 
 @app.get("/api/files/")
@@ -156,7 +156,7 @@ async def upload_file_api(
     return await upload_file(file, symbol)
 
 @app.post("/backtests")
-async def run_backtest(file: UploadFile = File(...), params_json: str = ""):
+async def run_backtest(file: UploadFile = File(...), params_json: str = Form("")):
     """Run backtesting on uploaded file"""
     
     # Basic validation
@@ -284,11 +284,11 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "Trading Backtesting API", 
-        "version": "1.0.2",
+        "version": "1.0.3",
         "endpoints": ["/api/files/", "/upload", "/api/files/upload/", "/backtests", "/api/historical-data/"],
         "data_directory": DATA_DIR,
         "uploaded_files_count": len(uploaded_files),
-        "fix_applied": "Updated /api/files/ to return proper file structure with all required fields"
+        "fix_applied": "Fixed /api/files/ endpoint and /backtests form data handling"
     }
 
 if __name__ == "__main__":
