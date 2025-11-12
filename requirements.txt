@@ -1,10 +1,5 @@
 fastapi==0.115.0
 uvicorn==0.30.0
-pandas==2.2.0
-numpy==1.26.0
-SQLAlchemy==2.0.25
 aiofiles==24.1.0
 python-multipart==0.0.12
 pydantic==2.9.0
-pymongo==4.10.1
-motor==3.6.0
